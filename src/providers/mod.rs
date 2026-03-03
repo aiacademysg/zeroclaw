@@ -2364,6 +2364,12 @@ pub fn list_providers() -> Vec<ProviderInfo> {
             local: false,
         },
         ProviderInfo {
+            name: "astrai",
+            display_name: "Astrai",
+            aliases: &[],
+            local: false,
+        },
+        ProviderInfo {
             name: "ovhcloud",
             display_name: "OVHcloud AI Endpoints",
             aliases: &["ovh"],
@@ -2409,6 +2415,67 @@ mod tests {
         LOCK.get_or_init(|| Mutex::new(()))
             .lock()
             .expect("env lock poisoned")
+    }
+
+    fn factory_provider_test_matrix() -> &'static [&'static str] {
+        &[
+            "openrouter",
+            "anthropic",
+            "openai",
+            "ollama",
+            "gemini",
+            "venice",
+            "vercel",
+            "cloudflare",
+            "moonshot",
+            "moonshot-intl",
+            "moonshot-cn",
+            "kimi-code",
+            "stepfun",
+            "step",
+            "step-ai",
+            "synthetic",
+            "opencode",
+            "zai",
+            "zai-cn",
+            "glm",
+            "glm-cn",
+            "minimax",
+            "minimax-cn",
+            "bedrock",
+            "hunyuan",
+            "qianfan",
+            "doubao",
+            "volcengine",
+            "siliconflow",
+            "qwen",
+            "qwen-intl",
+            "qwen-cn",
+            "qwen-us",
+            "qwen-coding-plan",
+            "qwen-code",
+            "lmstudio",
+            "llamacpp",
+            "sglang",
+            "vllm",
+            "litellm",
+            "osaurus",
+            "telnyx",
+            "groq",
+            "mistral",
+            "xai",
+            "deepseek",
+            "together",
+            "fireworks",
+            "novita",
+            "perplexity",
+            "cohere",
+            "copilot",
+            "cursor",
+            "nvidia",
+            "astrai",
+            "ovhcloud",
+        ]
     }
 
     #[test]
@@ -2731,6 +2798,63 @@ mod tests {
             let descriptor =
                 get_provider_descriptor(alias).unwrap_or_else(|| panic!("missing alias: {alias}"));
             assert_eq!(descriptor.canonical_name, canonical);
+        }
+    }
+
+    #[test]
+    fn registry_canonical_providers_are_discoverable() {
+        let discoverable = list_providers()
+            .into_iter()
+            .map(|provider| provider.name)
+            .collect::<std::collections::HashSet<_>>();
+
+        for descriptor in list_registered_compatible_providers() {
+            assert!(
+                discoverable.contains(descriptor.canonical_name),
+                "Registry provider '{}' missing from list_providers discovery list",
+                descriptor.canonical_name
+            );
+        }
+    }
+
+    #[test]
+    fn registry_canonical_providers_are_covered_by_factory_test_matrix() {
+        let matrix = factory_provider_test_matrix()
+            .iter()
+            .copied()
+            .collect::<std::collections::HashSet<_>>();
+
+        for descriptor in list_registered_compatible_providers() {
+            assert!(
+                matrix.contains(descriptor.canonical_name),
+                "Registry provider '{}' missing from factory provider matrix",
+                descriptor.canonical_name
+            );
+        }
+    }
+
+    #[test]
+    fn registry_backed_discovery_aliases_resolve_to_registry_descriptors() {
+        for provider in list_providers() {
+            let Some(canonical_descriptor) = get_provider_descriptor(provider.name) else {
+                continue;
+            };
+
+            assert_eq!(
+                canonical_descriptor.canonical_name, provider.name,
+                "Discovery provider '{}' should map to its registry canonical name",
+                provider.name
+            );
+
+            for alias in provider.aliases {
+                let alias_descriptor = get_provider_descriptor(alias)
+                    .unwrap_or_else(|| panic!("missing registry descriptor for alias '{alias}'"));
+                assert_eq!(
+                    alias_descriptor.canonical_name, provider.name,
+                    "Registry alias '{}' should resolve to canonical provider '{}'",
+                    alias, provider.name
+                );
+            }
         }
     }
 
@@ -3468,64 +3592,7 @@ providers = ["demo-plugin-provider"]
 
     #[test]
     fn factory_all_providers_create_successfully() {
-        let providers = [
-            "openrouter",
-            "anthropic",
-            "openai",
-            "ollama",
-            "gemini",
-            "venice",
-            "vercel",
-            "cloudflare",
-            "moonshot",
-            "moonshot-intl",
-            "kimi-code",
-            "moonshot-cn",
-            "kimi-code",
-            "stepfun",
-            "step",
-            "step-ai",
-            "synthetic",
-            "opencode",
-            "zai",
-            "zai-cn",
-            "glm",
-            "glm-cn",
-            "minimax",
-            "minimax-cn",
-            "bedrock",
-            "qianfan",
-            "doubao",
-            "volcengine",
-            "siliconflow",
-            "qwen",
-            "qwen-intl",
-            "qwen-cn",
-            "qwen-us",
-            "qwen-coding-plan",
-            "qwen-code",
-            "lmstudio",
-            "llamacpp",
-            "sglang",
-            "vllm",
-            "osaurus",
-            "telnyx",
-            "groq",
-            "mistral",
-            "xai",
-            "deepseek",
-            "together",
-            "fireworks",
-            "novita",
-            "perplexity",
-            "cohere",
-            "copilot",
-            "cursor",
-            "nvidia",
-            "astrai",
-            "ovhcloud",
-        ];
-        for name in providers {
+        for name in factory_provider_test_matrix() {
             assert!(
                 create_provider(name, Some("test-key")).is_ok(),
                 "Provider '{name}' should create successfully"

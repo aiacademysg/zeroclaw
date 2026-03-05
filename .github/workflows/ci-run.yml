@@ -413,7 +413,7 @@ jobs:
             matrix:
                 include:
                     - name: blacksmith-2vcpu-ubuntu-2404
-                      os: [self-hosted, Linux, X64, blacksmith-2vcpu-ubuntu-2404]
+                      os: blacksmith-2vcpu-ubuntu-2404
                       shell: bash
                       command: cargo test --locked --lib --bins --verbose
                     - name: windows-2022

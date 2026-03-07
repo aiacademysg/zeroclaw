@@ -296,6 +296,7 @@ fn resolve_matrix_delivery_room(configured_room_id: &str, target: &str) -> Strin
 async fn deliver_if_configured(config: &Config, job: &CronJob, output: &str) -> Result<()> {
     let delivery: &DeliveryConfig = &job.delivery;
     if !delivery.mode.eq_ignore_ascii_case("announce") {
+        tracing::debug!(job_name = %job.id, mode = %delivery.mode, "Skipping delivery (mode is not announce)");
         return Ok(());
     }
 

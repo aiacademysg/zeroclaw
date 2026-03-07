@@ -30,13 +30,13 @@ pub(crate) fn is_no_reply_sentinel(output: &str) -> bool {
 }
 
 /// Max chars per run output when injecting history into agent prompts.
-const RUN_HISTORY_MAX_OUTPUT_CHARS: usize = 600;
+const RUN_HISTORY_MAX_OUTPUT_CHARS: usize = 2000;
 
 /// Build a context block from recent cron run outputs for an agent job.
 /// This gives the agent concrete evidence of what it already reported,
 /// preventing repetition across isolated sessions.
 fn build_recent_run_context(config: &Config, job_id: &str) -> String {
-    let runs = match list_runs(config, job_id, 5) {
+    let runs = match list_runs(config, job_id, 10) {
         Ok(r) => r,
         Err(_) => return String::new(),
     };
@@ -54,7 +54,7 @@ fn build_recent_run_context(config: &Config, job_id: &str) -> String {
                     .is_some_and(|o| !is_no_reply_sentinel(o) && !o.trim().is_empty())
                 && (now - r.finished_at).num_hours() < 48
         })
-        .take(3)
+        .take(5)
         .collect();
 
     if relevant.is_empty() {
@@ -62,7 +62,10 @@ fn build_recent_run_context(config: &Config, job_id: &str) -> String {
     }
 
     let mut ctx = String::from(
-        "=== YOUR PREVIOUS OUTPUTS (you already sent these — DO NOT repeat) ===\n",
+        "=== YOUR PREVIOUS OUTPUTS (you already sent these — DO NOT repeat) ===\n\
+         STRICT RULE: Do NOT repeat ANY topic, suggestion, or question from these previous outputs.\n\
+         If you already suggested activities, asked about birthdays, or offered help — DO NOT do it again.\n\
+         If all your pending tasks were already covered below, respond with NO_REPLY.\n\n",
     );
 
     for run in &relevant {

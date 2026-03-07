@@ -1,0 +1,36 @@
+name: Sync upstream + rebase patches
+
+on:
+  schedule:
+    - cron: '0 4 * * *'  # daily at 4am UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/zeroclaw-labs/zeroclaw.git
+          git fetch upstream main
+
+      - name: Rebase onto upstream main
+        run: |
+          git rebase upstream/main
+          # If rebase fails (conflict), the workflow fails and we get notified
+
+      - name: Force-push
+        run: git push --force-with-lease origin main

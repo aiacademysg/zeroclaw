@@ -704,7 +704,7 @@ const MINIMAX_ONBOARD_MODELS: [(&str, &str); 5] = [
 
 fn default_model_for_provider(provider: &str) -> String {
     match canonical_provider_name(provider) {
-        "anthropic" => "claude-sonnet-4-5-20250929".into(),
+        "anthropic" => "claude-sonnet-4-6".into(),
         "openai" => "gpt-5.2".into(),
         "openai-codex" => "gpt-5-codex".into(),
         "venice" => "zai-org-glm-5".into(),
@@ -722,12 +722,12 @@ fn default_model_for_provider(provider: &str) -> String {
         "minimax" => "MiniMax-M2.5".into(),
         "qwen" => "qwen-plus".into(),
         "qwen-code" => "qwen3-coder-plus".into(),
-        "ollama" => "llama3.2".into(),
+        "ollama" => "llama4:scout".into(),
         "llamacpp" => "ggml-org/gpt-oss-20b-GGUF".into(),
         "sglang" | "vllm" | "osaurus" | "opencode-go" => "default".into(),
-        "gemini" => "gemini-2.5-pro".into(),
+        "gemini" => "gemini-3-flash-preview".into(),
         "kimi-code" => "kimi-for-coding".into(),
-        "bedrock" => "anthropic.claude-sonnet-4-5-20250929-v1:0".into(),
+        "bedrock" => "anthropic.claude-sonnet-4-6".into(),
         "nvidia" => "meta/llama-3.3-70b-instruct".into(),
         _ => "anthropic/claude-sonnet-4.6".into(),
     }
@@ -767,8 +767,8 @@ fn curated_models_for_provider(provider_name: &str) -> Vec<(String, String)> {
         ],
         "anthropic" => vec![
             (
-                "claude-sonnet-4-5-20250929".to_string(),
-                "Claude Sonnet 4.5 (balanced, recommended)".to_string(),
+                "claude-sonnet-4-6".to_string(),
+                "Claude Sonnet 4.6 (balanced, recommended)".to_string(),
             ),
             (
                 "claude-opus-4-6".to_string(),
@@ -828,8 +828,12 @@ fn curated_models_for_provider(provider_name: &str) -> Vec<(String, String)> {
         ],
         "groq" => vec![
             (
+                "meta-llama/llama-4-scout-17b-16e-instruct".to_string(),
+                "Llama 4 Scout (latest, recommended)".to_string(),
+            ),
+            (
                 "llama-3.3-70b-versatile".to_string(),
-                "Llama 3.3 70B (fast, recommended)".to_string(),
+                "Llama 3.3 70B (stable, fast)".to_string(),
             ),
             (
                 "openai/gpt-oss-120b".to_string(),
@@ -1055,12 +1059,21 @@ fn curated_models_for_provider(provider_name: &str) -> Vec<(String, String)> {
         ],
         "ollama" => vec![
             (
-                "llama3.2".to_string(),
-                "Llama 3.2 (recommended local)".to_string(),
+                "llama4:scout".to_string(),
+                "Llama 4 Scout (recommended local)".to_string(),
             ),
-            ("mistral".to_string(), "Mistral 7B".to_string()),
-            ("codellama".to_string(), "Code Llama".to_string()),
-            ("phi3".to_string(), "Phi-3 (small, fast)".to_string()),
+            (
+                "llama4:maverick".to_string(),
+                "Llama 4 Maverick (high quality)".to_string(),
+            ),
+            ("llama3.3".to_string(), "Llama 3.3 70B (stable)".to_string()),
+            ("qwen3".to_string(), "Qwen3 (multilingual)".to_string()),
+            ("phi4".to_string(), "Phi-4 (small, fast)".to_string()),
+            (
+                "deepseek-r1".to_string(),
+                "DeepSeek R1 (reasoning)".to_string(),
+            ),
+            ("gemma3".to_string(), "Gemma 3 (Google open)".to_string()),
         ],
         "llamacpp" => vec![
             (
@@ -1124,20 +1137,20 @@ fn curated_models_for_provider(provider_name: &str) -> Vec<(String, String)> {
         ],
         "gemini" => vec![
             (
-                "gemini-3-pro-preview".to_string(),
-                "Gemini 3 Pro Preview (latest frontier reasoning)".to_string(),
+                "gemini-3.1-pro-preview".to_string(),
+                "Gemini 3.1 Pro Preview (frontier reasoning)".to_string(),
             ),
             (
-                "gemini-2.5-pro".to_string(),
-                "Gemini 2.5 Pro (stable reasoning)".to_string(),
+                "gemini-3-flash-preview".to_string(),
+                "Gemini 3 Flash Preview (recommended)".to_string(),
+            ),
+            (
+                "gemini-3.1-flash-lite-preview".to_string(),
+                "Gemini 3.1 Flash Lite Preview (lowest cost)".to_string(),
             ),
             (
                 "gemini-2.5-flash".to_string(),
-                "Gemini 2.5 Flash (best price/performance)".to_string(),
-            ),
-            (
-                "gemini-2.5-flash-lite".to_string(),
-                "Gemini 2.5 Flash-Lite (lowest cost)".to_string(),
+                "Gemini 2.5 Flash (stable fallback)".to_string(),
             ),
         ],
         _ => vec![("default".to_string(), "Default model".to_string())],
@@ -2162,7 +2175,7 @@ async fn setup_provider(workspace_dir: &Path) -> Result<(String, String, String,
             ("perplexity", "Perplexity — search-augmented AI"),
             (
                 "gemini",
-                "Google Gemini — Gemini 2.0 Flash & Pro (supports CLI auth)",
+                "Google Gemini — Gemini 3.1 Flash & Pro (supports CLI auth)",
             ),
         ],
         1 => vec![
@@ -6473,7 +6486,7 @@ mod tests {
         assert_eq!(default_model_for_provider("openai-codex"), "gpt-5-codex");
         assert_eq!(
             default_model_for_provider("anthropic"),
-            "claude-sonnet-4-5-20250929"
+            "claude-sonnet-4-6"
         );
         assert_eq!(default_model_for_provider("qwen"), "qwen-plus");
         assert_eq!(default_model_for_provider("qwen-intl"), "qwen-plus");
@@ -6481,16 +6494,16 @@ mod tests {
         assert_eq!(default_model_for_provider("glm-cn"), "glm-5");
         assert_eq!(default_model_for_provider("minimax-cn"), "MiniMax-M2.5");
         assert_eq!(default_model_for_provider("zai-cn"), "glm-5");
-        assert_eq!(default_model_for_provider("gemini"), "gemini-2.5-pro");
-        assert_eq!(default_model_for_provider("google"), "gemini-2.5-pro");
+        assert_eq!(default_model_for_provider("gemini"), "gemini-3-flash-preview");
+        assert_eq!(default_model_for_provider("google"), "gemini-3-flash-preview");
         assert_eq!(default_model_for_provider("kimi-code"), "kimi-for-coding");
         assert_eq!(
             default_model_for_provider("bedrock"),
-            "anthropic.claude-sonnet-4-5-20250929-v1:0"
+            "anthropic.claude-sonnet-4-6"
         );
         assert_eq!(
             default_model_for_provider("google-gemini"),
-            "gemini-2.5-pro"
+            "gemini-3-flash-preview"
         );
         assert_eq!(default_model_for_provider("venice"), "zai-org-glm-5");
         assert_eq!(default_model_for_provider("moonshot"), "kimi-k2.5");

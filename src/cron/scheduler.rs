@@ -58,9 +58,8 @@ fn build_recent_run_context(config: &Config, job_id: &str) -> String {
         return String::new();
     }
 
-    let mut ctx = String::from(
-        "=== YOUR PREVIOUS OUTPUTS (you already sent these — DO NOT repeat) ===\n",
-    );
+    let mut ctx =
+        String::from("=== YOUR PREVIOUS OUTPUTS (you already sent these — DO NOT repeat) ===\n");
 
     for run in &relevant {
         let output = run.output.as_deref().unwrap_or("");

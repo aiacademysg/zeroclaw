@@ -15,6 +15,11 @@
 //! To add a new tool, implement [`Tool`] in a new submodule and register it in
 //! [`all_tools_with_runtime`]. See `AGENTS.md` §7.3 for the full change playbook.
 
+pub mod board_create;
+pub mod board_delete;
+pub mod board_list;
+pub mod board_summary;
+pub mod board_update;
 pub mod browser;
 pub mod browser_open;
 pub mod cli_discovery;
@@ -62,6 +67,11 @@ pub mod traits;
 pub mod web_fetch;
 pub mod web_search_tool;
 
+pub use board_create::BoardCreateTool;
+pub use board_delete::BoardDeleteTool;
+pub use board_list::BoardListTool;
+pub use board_summary::BoardSummaryTool;
+pub use board_update::BoardUpdateTool;
 pub use browser::{BrowserTool, ComputerUseConfig};
 pub use browser_open::BrowserOpenTool;
 pub use composio::ComposioTool;
@@ -336,6 +346,24 @@ pub fn all_tools_with_runtime(
             root_config.web_search.timeout_secs,
             root_config.config_path.clone(),
             root_config.secrets.encrypt,
+        )));
+    }
+
+    // Board tools (task board)
+    if root_config.board.enabled {
+        tool_arcs.push(Arc::new(BoardSummaryTool::new(config.clone())));
+        tool_arcs.push(Arc::new(BoardListTool::new(config.clone())));
+        tool_arcs.push(Arc::new(BoardCreateTool::new(
+            config.clone(),
+            security.clone(),
+        )));
+        tool_arcs.push(Arc::new(BoardUpdateTool::new(
+            config.clone(),
+            security.clone(),
+        )));
+        tool_arcs.push(Arc::new(BoardDeleteTool::new(
+            config.clone(),
+            security.clone(),
         )));
     }
 

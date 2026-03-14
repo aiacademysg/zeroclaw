@@ -164,6 +164,10 @@ pub struct Config {
     #[serde(default)]
     pub cron: CronConfig,
 
+    /// Task board configuration (`[board]`).
+    #[serde(default)]
+    pub board: BoardConfig,
+
     /// Channel configurations: Telegram, Discord, Slack, etc. (`[channels_config]`).
     #[serde(default)]
     pub channels_config: ChannelsConfig,
@@ -2944,6 +2948,43 @@ impl Default for CronConfig {
     }
 }
 
+// ── Board ───────────────────────────────────────────────────────
+
+/// Task board configuration (`[board]` section).
+///
+/// When enabled, provides structured task management tools that replace
+/// freeform TASKS.md with an API-backed board stored in per-agent SQLite.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct BoardConfig {
+    /// Enable the board subsystem. Default: `false`.
+    #[serde(default)]
+    pub enabled: bool,
+    /// Orchestrator URL for board API calls. Default: `"http://127.0.0.1:9090"`.
+    #[serde(default = "default_board_api_url")]
+    pub api_url: String,
+    /// Board API key (`sk-board-...`). Default: empty (must be provisioned).
+    #[serde(default)]
+    pub api_key: String,
+    /// Agent's bot UUID. Used internally for API routing.
+    #[serde(default)]
+    pub bot_id: String,
+}
+
+fn default_board_api_url() -> String {
+    "http://127.0.0.1:9090".to_string()
+}
+
+impl Default for BoardConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            api_url: default_board_api_url(),
+            api_key: String::new(),
+            bot_id: String::new(),
+        }
+    }
+}
+
 // ── Tunnel ──────────────────────────────────────────────────────
 
 /// Tunnel configuration for exposing the gateway publicly (`[tunnel]` section).
@@ -4142,6 +4183,7 @@ impl Default for Config {
             embedding_routes: Vec::new(),
             heartbeat: HeartbeatConfig::default(),
             cron: CronConfig::default(),
+            board: BoardConfig::default(),
             channels_config: ChannelsConfig::default(),
             memory: MemoryConfig::default(),
             storage: StorageConfig::default(),
@@ -6154,6 +6196,7 @@ default_temperature = 0.7
                 to: Some("123456".into()),
             },
             cron: CronConfig::default(),
+            board: BoardConfig::default(),
             channels_config: ChannelsConfig {
                 cli: true,
                 telegram: Some(TelegramConfig {
@@ -6478,6 +6521,7 @@ tool_dispatcher = "xml"
             query_classification: QueryClassificationConfig::default(),
             heartbeat: HeartbeatConfig::default(),
             cron: CronConfig::default(),
+            board: BoardConfig::default(),
             channels_config: ChannelsConfig::default(),
             memory: MemoryConfig::default(),
             storage: StorageConfig::default(),

@@ -460,13 +460,16 @@ impl TelegramChannel {
         // State dir: {workspace_dir}/state/ (i.e. .zeroclaw/workspace/state/)
         let state_dir = workspace.join("state");
         if let Err(e) = std::fs::create_dir_all(&state_dir) {
-            tracing::warn!("Failed to create state directory {}: {}", state_dir.display(), e);
+            tracing::warn!(
+                "Failed to create state directory {}: {}",
+                state_dir.display(),
+                e
+            );
             return;
         }
 
-        let users: std::collections::HashMap<String, SeenTelegramUser> = {
-            self.seen_telegram_users.lock().clone()
-        };
+        let users: std::collections::HashMap<String, SeenTelegramUser> =
+            { self.seen_telegram_users.lock().clone() };
 
         let payload = serde_json::json!({ "users": users });
         let path = state_dir.join("telegram_users.json");

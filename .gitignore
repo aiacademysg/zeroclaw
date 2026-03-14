@@ -44,3 +44,4 @@ lcov.info
 
 # IDE's stuff
 .idea
+apps/claw-crm/target/debug/

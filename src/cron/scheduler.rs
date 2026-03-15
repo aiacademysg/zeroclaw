@@ -383,6 +383,10 @@ async fn deliver_if_configured(config: &Config, job: &CronJob, output: &str) -> 
         return Ok(());
     }
 
+    if is_no_reply_sentinel(output) {
+        return Ok(());
+    }
+
     let channel = delivery
         .channel
         .as_deref()
